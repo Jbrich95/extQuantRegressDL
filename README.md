@@ -1,5 +1,5 @@
 # extQuantRegressDL
-This repository contains the code used for the analysis and simulation study of Chapter 21 "Extreme Quantile Regression with Deep Learning" for Chapman and Hall/CRC Handbook on Statistics of Extremes. A preview of the chapter can be found on [arXiv]([doi:10.1016/j.spasta.2024.100811](https://arxiv.org/abs/2404.09154).
+This repository contains the code used for the application and simulation study of Chapter 21 "Extreme Quantile Regression with Deep Learning" for Chapman and Hall/CRC Handbook on Statistics of Extremes. A preview of the chapter can be found on [arXiv](https://arxiv.org/abs/2404.09154).
 
 ## Installation 
 
@@ -24,6 +24,5 @@ tensorflow::install_tensorflow(method="virtualenv", envname="myenv",
 keras::install_keras(method = c("virtualenv"), envname = "myenv",version=tf_version) #Install keras
 
 keras::is_keras_available() #Check if keras is available
-
 
 ```
