@@ -42,3 +42,19 @@ reticulate::use_virtualenv("eQRDL", required = T)
 keras::is_keras_available() 
 
 ```
+
+## Details
+
+The directory `sim_study` contains the code used to perform the simulation study in Section 1.4 of the handbook chapter. We consider estimation of return levels using different machine learning methods. Two settings are considered for the true data-generating distribution, i.e., $Y | \mathbf{X}=\mathbf{x}$ : i) generalised Pareto (GP) upper-tails and ii) log-normal. The code for generating these data are found in the scripts `sim_GP.R` and `sim_lnorm.R`, respectively.
+
+The different algorithms for estimating return levels are listed below. The first three methods (`evGAM.R`, `gbex.R`, and `GP_MLP.R`) utilise GP regression models, but with the scale and shape parameters, $\sigma$ and $\xi$, modelled using different machine learning algorithms (generalised additive models, gradient boosting, and neural networks, respectively). The script `Q_MLP.R` fits single-quantile deep regression models using multi-layered perceptrons. Each script requires the user to set two arguments: `type` and `no.experiment`. The argument `type` will change the data-generating process, with `type=1` corresponding to case i) above and `type=2` corresponding to case ii), i.e., log-normal data.  The argument `no.experiment` will change the seed for the data generation scheme, and represents a different experiment in the simulation study. In the handbook chapter, we consider `no.experiment` ranging from 1 to 250; these results have been saved in the directory `sim_study_results`, and are separated by type.
+
+
+```bash
+├── sim_GP.R          (Functions for generating GP data)
+├── sim_lnorm.R       (Functions for generating log-normal data)
+├── evGAM.R           (Generalised additive models -- evGAM)
+├── gbex.R            (Gradient boosting of extremes)
+├── GP_MLP.R          (Deep GP regresion with multi-layered perceptrons)
+├── Q_MLP.R           (Deep quantile regression with multi-layered perceptrons)
+```
