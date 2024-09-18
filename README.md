@@ -67,6 +67,23 @@ Running the scripts for the four algorithms will fit the corresponding model to 
 ├── Q_MLP.R           (Deep quantile regression with multi-layered perceptrons)
 ├── sim_study_results/           (Contains all MSE estimates)
 ├── plot_MSE.R        (Create panels for Figure 1.4)
-├── Figures/           (Contains Figures)
+├── Figures/           (Contains figures)
 
+```
+
+### Application
+
+The directory `application/` contains the code and data used in the application in Section 1.5 of the handbook chapter. We model return levels of European precipitation using a blended generalised extreme value (GEV) deep regression model. For details on the blended GEV, see Castro-Camilo, D., et al. (2022) [doi:10.1002/env.2742](https://doi.org/10.1002/env.2742).
+
+The data are contained within `monthly_max_data.Rdata`. Response data `Y` are monthly maxima of hourly precipitation values (mm) for a regular spatial grid encompassing the British Isles, as well as parts of France, Belgium, and the Netherlands. The grid-boxes are arranged on a regular $65\times 65$ latitude/longitude grid, with spatial resolution $0.25^\circ \times 0.25^\circ$. The observation period encompasses only the summer months (June, July, August) and the years 2001--2022, inclusive. This leaves 66 observations of the monthly maximum hourly rainfall per grid-cell. The variable `Y` is a $66 \times 4225$ matrix, with the rows corresponding to observations and the columns corresponding to sampling locations. The variable `coords` is a $4552 \times 2$ matrix of (longitude, latitude) coordinates for the sampling locations. `times` is a vector of the year-month for each observations.
+
+We have $q=17$ covariates in `X` for each space-time observation of `Y`, and so `X` is a $66 \times 4225 \times 17$ array. The covariates include the monthly mean and maximum of the following six dynamic meteorological variables: air temperature at a 2m altitude (K), mean sea level pressure (Pa), surface level pressure (Pa), total ozone (in a column extending from the surface of the Earth to the atmosphere; kg/m$^2$), eastward and northward components of wind speed at a 10m altitude (m/s$^2$). We also have five static covariates that do not change with time: anisotropy (unitless), slope (unitless), angle (radians), and standard deviation (unitless) of the orography within a grid-cell, and a land-sea mask (unitless) which measures the proportion of land contained within a grid-box. The ordering of the covariates in the last dimension of `X` is determined by the vector `cov_names`.
+
+```bash
+├── bGEV_loss_functions.R          (Functions that comprise the bGEV loss function)
+├── bootstrap.R                    (Estimates the deep bGEV model for a single bootstrap sample)
+├── monthly_max_data.Rdata         (Precipitation data and covariates)
+├── application_plots.R            (Creates plots for Figures 1.5, 1.6, and 1.7)
+├── Predictions/                   (Contains bootstrap parameter estimates)
+├── Figures/                       (Contains figures)
 ```
