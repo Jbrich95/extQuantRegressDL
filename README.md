@@ -45,9 +45,13 @@ keras::is_keras_available()
 
 ## Details
 
-The directory `sim_study` contains the code used to perform the simulation study in Section 1.4 of the handbook chapter. We consider estimation of return levels using different machine learning methods. Two settings are considered for the true data-generating distribution, i.e., $Y | \mathbf{X}=\mathbf{x}$ : i) generalised Pareto (GP) upper-tails and ii) log-normal. The code for generating these data are found in the scripts `sim_GP.R` and `sim_lnorm.R`, respectively.
+The directory `sim_study/` contains the code used to perform the simulation study in Section 1.4 of the handbook chapter. We consider estimation of return levels using different machine learning methods. Two settings are considered for the true data-generating distribution, i.e., $Y | \mathbf{X}=\mathbf{x}$ : i) generalised Pareto (GP) upper-tails and ii) log-normal. The functions for generating these data are found in the scripts `sim_GP.R` and `sim_lnorm.R`, respectively.
 
-The different algorithms for estimating return levels are listed below. The first three methods (`evGAM.R`, `gbex.R`, and `GP_MLP.R`) utilise GP regression models, but with the scale and shape parameters, $\sigma$ and $\xi$, modelled using different machine learning algorithms (generalised additive models, gradient boosting, and neural networks, respectively). The script `Q_MLP.R` fits single-quantile deep regression models using multi-layered perceptrons. Each script requires the user to set two arguments: `type` and `no.experiment`. The argument `type` will change the data-generating process, with `type=1` corresponding to case i) above and `type=2` corresponding to case ii), i.e., log-normal data.  The argument `no.experiment` will change the seed for the data generation scheme, and represents a different experiment in the simulation study. In the handbook chapter, we consider `no.experiment` ranging from 1 to 250; these results have been saved in the directory `sim_study_results`, and are separated by type.
+The different algorithms for estimating extreme quantiles are listed below. The first three methods (`evGAM.R`, `gbex.R`, and `GP_MLP.R`) utilise GP regression models, but with the scale and shape parameters, $\sigma$ and $\xi$, modelled using different machine learning algorithms (generalised additive models, gradient boosting, and neural networks, respectively). The script `Q_MLP.R` fits single-quantile deep regression models using multi-layered perceptrons.
+
+Each script requires the user to set two arguments: `type` and `no.experiment`. The argument `type` will change the data-generating process, with `type=1` corresponding to case i) above and `type=2` corresponding to case ii), i.e., log-normal data.  The argument `no.experiment` will change the seed for the data generation scheme, and represents a different experiment in the simulation study. In the handbook chapter, we consider `no.experiment` ranging from 1 to 250.
+
+Running the scripts for the four algorithms will fit the corresponding model to estimate a sequence of quantiles, ranging from the 25th percentile to the 99.99th percentile. This will be repeated for three sample sizes: $n=10000$, $=1\times 10^5$, and $n=1\times 10^6$. The mean-squared error (MSE) for each sample size and quantile is then saved in the directory `sim_study_results`; in the directory, we provide all of the MSE estimates used in the handbook. Figure 1.4, showcasing boxplots of the MSE estimates, can then be compiled by running `plot_MSE.R`.
 
 
 ```bash
@@ -57,4 +61,7 @@ The different algorithms for estimating return levels are listed below. The firs
 ├── gbex.R            (Gradient boosting of extremes)
 ├── GP_MLP.R          (Deep GP regresion with multi-layered perceptrons)
 ├── Q_MLP.R           (Deep quantile regression with multi-layered perceptrons)
+├── sim_study_results/           (Contains all MSE estimates)
+├── plot_MSE.R        (Create Figure 1.4)
+
 ```
