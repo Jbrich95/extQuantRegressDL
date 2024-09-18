@@ -51,7 +51,7 @@ The different algorithms for estimating extreme quantiles are listed below. The 
 
 Each script requires the user to set two arguments: `type` and `no.experiment`. The argument `type` will change the data-generating process, with `type=1` corresponding to case i) above and `type=2` corresponding to case ii), i.e., log-normal data.  The argument `no.experiment` will change the seed for the data generation scheme, and represents a different experiment in the simulation study. In the handbook chapter, we consider `no.experiment` ranging from 1 to 250.
 
-Running the scripts for the four algorithms will fit the corresponding model to estimate a sequence of quantiles, ranging from the 25th percentile to the 99.99th percentile. This will be repeated for three sample sizes: $n=10000$, $=1\times 10^5$, and $n=1\times 10^6$. The mean-squared error (MSE) for each sample size and quantile is then saved in the directory `sim_study_results`; in the directory, we provide all of the MSE estimates used in the handbook. Figure 1.4, showcasing boxplots of the MSE estimates, can then be compiled by running `plot_MSE.R`.
+Running the scripts for the four algorithms will fit the corresponding model to estimate a sequence of quantiles, ranging from the 25th percentile to the 99.99th percentile. This will be repeated for two sample sizes: $n=10000$ and $n=1\times 10^6$. The mean-squared error (MSE) for each sample size and quantile is then saved in the directory `sim_study_results`; in the directory, we provide all of the MSE estimates used in the handbook. Figure 1.4, showcasing boxplots of the root normalised MSE estimates, can then be compiled by running `plot_MSE.R`.
 
 
 ```bash
@@ -62,6 +62,7 @@ Running the scripts for the four algorithms will fit the corresponding model to 
 ├── GP_MLP.R          (Deep GP regresion with multi-layered perceptrons)
 ├── Q_MLP.R           (Deep quantile regression with multi-layered perceptrons)
 ├── sim_study_results/           (Contains all MSE estimates)
-├── plot_MSE.R        (Create Figure 1.4)
+├── plot_MSE.R        (Create panels for Figure 1.4)
+├── Figures/           (Contains Figures)
 
 ```
