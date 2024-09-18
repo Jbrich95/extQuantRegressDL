@@ -3,26 +3,42 @@ This repository contains the code used for the application and simulation study 
 
 ## Installation 
 
-We install CPU tensorflow and Keras in a virtual environment. See [this installation guide](https://tensorflow.rstudio.com/install/) for further details on installation of tensorflow in R.
+First, install the relevant R packages.
 
 ```r
-py_version <- "3.8.10"
+source("install_packages.R")
+
+```
+
+
+We first create a virtual Python environment, which we call 'eQRDL'. The code below uses the R-reticulate package to install Python v3.9.18. If you run into any issues installing Python, please see [this installation guide for reticulate](https://rstudio.github.io/reticulate/articles/python_packages).
+
+We then install CPU tensorflow and Keras in 'eQRDL'. See [this installation guide](https://tensorflow.rstudio.com/install/) for further details on installation of tensorflow in R.
+
+
+```r
+#Install Python 3.9.18
+py_version <- "3.9.18"
 path_to_python <- reticulate::install_python(version=py_version)
 
-#Create a virtual envionment 'myenv' with Python 3.8.10. Install tensorflow  within this environment.
-reticulate::virtualenv_create(envname = 'myenv',
+#Create a virtual envionment 'eQRDL'.
+reticulate::virtualenv_create(envname = 'eQRDL',
                               python=path_to_python,
-                              version=py_version)
-
-path<- paste0(reticulate::virtualenv_root(),"/myenv/bin/python")
+                              version=py_version,
+                              force=T)
+path<- paste0(reticulate::virtualenv_root(),"/eQRDL/bin/python")
 Sys.setenv(RETICULATE_PYTHON = path) #Set Python interpreter to that installed in myenv
 
-tf_version="2.11.0" 
-reticulate::use_virtualenv("myenv", required = T)
-tensorflow::install_tensorflow(method="virtualenv", envname="myenv",
+#Install tensorflow in 'eQRDL'. The R session will restart after this block is run.
+tf_version="2.13.1" 
+tensorflow::install_tensorflow(method="virtualenv", envname="eQRDL",
                                version=tf_version) #Install version of tensorflow in virtual environment
-keras::install_keras(method = c("virtualenv"), envname = "myenv",version=tf_version) #Install keras
+                               
+#Similarly, install Keras                               
+keras::install_keras(method = c("virtualenv"), envname = "eQRDL",version=tf_version) #Install keras
 
-keras::is_keras_available() #Check if keras is available
+#Check if keras is available
+reticulate::use_virtualenv("eQRDL", required = T)
+keras::is_keras_available() 
 
 ```
