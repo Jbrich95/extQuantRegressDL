@@ -45,6 +45,10 @@ keras::is_keras_available()
 
 ## Details
 
+The script `Figure1_Chapter21.R` can be used to recreate Figure 1.1 of the handbook chapter.
+
+### Simulation study
+
 The directory `sim_study/` contains the code used to perform the simulation study in Section 1.4 of the handbook chapter. We consider estimation of return levels using different machine learning methods. Two settings are considered for the true data-generating distribution, i.e., $Y | \mathbf{X}=\mathbf{x}$ : i) generalised Pareto (GP) upper-tails and ii) log-normal. The functions for generating these data are found in the scripts `sim_GP.R` and `sim_lnorm.R`, respectively.
 
 The different algorithms for estimating extreme quantiles are listed below. The first three methods (`evGAM.R`, `gbex.R`, and `GP_MLP.R`) utilise GP regression models, but with the scale and shape parameters, $\sigma$ and $\xi$, modelled using different machine learning algorithms (generalised additive models, gradient boosting, and neural networks, respectively). The script `Q_MLP.R` fits single-quantile deep regression models using multi-layered perceptrons.
