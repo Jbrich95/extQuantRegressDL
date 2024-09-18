@@ -1,3 +1,6 @@
+rm(list = ls())
+
+
 library(gbex)
 library(evd)
 

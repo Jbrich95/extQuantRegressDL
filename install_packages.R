@@ -1,4 +1,5 @@
 install.packages("evd")
+install.packages("ismev")
 
 # For deep learning models
 install.packages("reticulate")
@@ -11,7 +12,7 @@ install.packages("mvnfast")
 install.packages("evgam")
 
 # For plotting
-install.packages("ggplots2")
+install.packages("ggplot")
 
 
 

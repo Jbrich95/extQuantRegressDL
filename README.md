@@ -79,6 +79,8 @@ The data are contained within `monthly_max_data.Rdata`. Response data `Y` are mo
 
 We have $q=17$ covariates in `X` for each space-time observation of `Y`, and so `X` is a $66 \times 4225 \times 17$ array. The covariates include the monthly mean and maximum of the following six dynamic meteorological variables: air temperature at a 2m altitude (K), mean sea level pressure (Pa), surface level pressure (Pa), total ozone (in a column extending from the surface of the Earth to the atmosphere; kg/m$^2$), eastward and northward components of wind speed at a 10m altitude (m/s$^2$). We also have five static covariates that do not change with time: anisotropy (unitless), slope (unitless), angle (radians), and standard deviation (unitless) of the orography within a grid-cell, and a land-sea mask (unitless) which measures the proportion of land contained within a grid-box. The ordering of the covariates in the last dimension of `X` is determined by the vector `cov_names`.
 
+We perform a bootstrap analysis using `bootstrap.R`, with the source functions proivded in `bGEV_loss_functions.R`. The user must specify `boot.num`, which will determine the seed for the bootstrap sampling scheme. In the handbook chapter, we consider `boot.num` ranging from 1 to 200. For each bootstrap sample, we fit a bGEV regression model to the resampled data, and save the predictions, i.e., the parameter estimates, in `Predictions/`. The script `application_plots.R` then compiles these estimates into the plots provided in the handbook chapter.
+
 ```bash
 ├── bGEV_loss_functions.R          (Functions that comprise the bGEV loss function)
 ├── bootstrap.R                    (Estimates the deep bGEV model for a single bootstrap sample)

@@ -1,3 +1,6 @@
+rm(list = ls())
+
+
 library(evgam)
 library(evd)
 

@@ -1,3 +1,5 @@
+rm(list = ls())
+
 reticulate::use_virtualenv("eQRDL", required = T)
 library(keras)
 library(tensorflow)
@@ -7,16 +9,16 @@ library(evd)
 
 GPD_loss <- function(y_true, y_pred) {
   K <- backend()
-  
+
   sig <- y_pred[all_dims(), 1]
   xi <- y_pred[all_dims(), 2]
   y <- y_true[all_dims(), 1]
-  
+
   # Evaluate log-likelihood
   ll1 <- -(1 / xi + 1) * K$log(1 + xi * y / sig)
-  
+
   ll2 <- -K$log(sig)
-  
+
   return(-(K$mean(ll1) + K$mean(ll2)))
 }
 
@@ -81,7 +83,7 @@ for (n in ns) {
   input_nn <- layer_input(shape = dim(X)[2], name = "nn_input") # Define the input layer
 
   # We first define the model for xi
-  
+
   # Build hidden layers - Note that we define L1 and L2 regularisation via the kernel_regularizer
   xiBranch <- input_nn %>%
     layer_dense(
@@ -99,7 +101,7 @@ for (n in ns) {
   xiBranch <- xiBranch %>% layer_dense(units = 1, activation = "exponential", name = paste0("nonlin_xi_dense"))
 
   # We now define the model for sigma
-  
+
   # Build hidden layers - Note that we define L1 and L2 regularisation via the kernel_regularizer
   sigBranch <- input_nn %>%
     layer_dense(
@@ -113,7 +115,7 @@ for (n in ns) {
         kernel_regularizer = regularizer_l1_l2(l1 = 1e-4, l2 = 1e-4)
       )
   }
-  
+
   # Add final output layer. We used an exponential activation function to ensure sigma > 0.
   sigBranch <- sigBranch %>% layer_dense(units = 1, activation = "exponential", name = paste0("nonlin_sig_dense"))
 
@@ -134,16 +136,17 @@ for (n in ns) {
     loss = GPD_loss,
     run_eagerly = T
   )
-  
+
   # Train model
-  n.epochs = 250  #Train for 250 epochs
-  mini.batch.size = 512 #Mini-batch size of 512
-  
+  n.epochs <- 250 # Train for 250 epochs
+  mini.batch.size <- 512 # Mini-batch size of 512
+
   history <- model %>% fit(
     list(X.train), Y.train,
     epochs = n.epochs, batch_size = mini.batch.size,
-    callback = list(callback_early_stopping(  # Here we define the early stopping criterion
-      monitor = "val_loss", min_delta = 0, patience = 5 )),
+    callback = list(callback_early_stopping( # Here we define the early stopping criterion
+      monitor = "val_loss", min_delta = 0, patience = 5
+    )),
     validation_data = list(list(nn_input = X.valid), Y.valid),
     verbose = 2
   )

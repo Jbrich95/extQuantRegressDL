@@ -29,7 +29,7 @@ ps <- seq(0.99,0.99999,by=0.00001) #probability levels
 us <- c(0.9,0.95,0.98,0.99) #GPD thresholds
 
 PDF <- TRUE #should a PDF be created?
-COMPUTE <- FALSE #should the quantiles all be recomputed? (if not, it will attempt to load results stored in a file)
+COMPUTE <- TRUE #should the quantiles all be recomputed? (if not, it will attempt to load results stored in a file)
 SAVE <- FALSE #should the results be saved?
 
 

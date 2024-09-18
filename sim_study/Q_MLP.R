@@ -1,3 +1,5 @@
+rm(list = ls())
+
 ## NOTE THAT THIS MAY TAKE SOME TIME TO RUN.
 # This script will train a separate neural network model for each value of tau and each sample size, so can be quite computationally demanding.
 reticulate::use_virtualenv("eQRDL", required = T)
@@ -68,19 +70,19 @@ for (n in ns) {
   for (j in 1:length(MSE)) {
     # Build MLP model
     input_nn <- layer_input(shape = dim(X)[2], name = "nn_input") # Define input layer
-    
+
     # Build hidden layers - Note that we define L1 and L2 regularisation via the kernel_regularizer
     qBranch <- input_nn %>%
       layer_dense(
         units = nunits[1], activation = "relu",
         input_shape = dim(X)[2], name = "nonlin_dense1", kernel_regularizer = regularizer_l1_l2(l1 = 1e-4, l2 = 1e-4)
       )
-    
+
     for (i in 2:length(nunits)) {
       qBranch <- qBranch %>%
         layer_dense(units = nunits[i], activation = "relu", name = paste0("nonlin_dense", i), kernel_regularizer = regularizer_l1_l2(l1 = 1e-4, l2 = 1e-4))
     }
-    
+
     # Add final output layer
     output <- qBranch %>% layer_dense(units = 1, activation = "linear", name = paste0("nonlin_dense"))
 
@@ -98,23 +100,24 @@ for (n in ns) {
       error <- y_true - y_pred
       return(K$mean(K$maximum(quant.level * error, (quant.level - 1) * error)))
     }
-    
+
     # Compile Keras model with adam optimiser and tilted loss
     model %>% compile(
       optimizer = "adam",
       loss = tilted_loss,
       run_eagerly = T
     )
-    
+
     # Train model
-    n.epochs = 250  #Train for 250 epochs
-    mini.batch.size = 512 #Mini-batch size of 512
+    n.epochs <- 250 # Train for 250 epochs
+    mini.batch.size <- 512 # Mini-batch size of 512
 
     history <- model %>% fit(
       list(X.train), Y.train,
       epochs = n.epochs, batch_size = mini.batch.size,
       callback = list(callback_early_stopping( # Here we define the early stopping criterion
-        monitor = "val_loss", min_delta = 0, patience = 5)),
+        monitor = "val_loss", min_delta = 0, patience = 5
+      )),
       validation_data = list(list(nn_input = X.valid), Y.valid),
       verbose = 2
     )

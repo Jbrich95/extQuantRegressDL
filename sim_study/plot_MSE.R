@@ -4,7 +4,7 @@ tau <- c(0.2, 0.5, 0.8, 0.9, 0.95, 0.99, 0.999, 0.9999)
 
 n.exp <- 250 # Total number of experiments
 ns <- c(1e4, 1e6) # Sample sizes
-type <- 1  # type=1 for GP, type=2 for log-normal
+type <- 1 # type=1 for GP, type=2 for log-normal
 
 
 # Read in all MSE estimates
