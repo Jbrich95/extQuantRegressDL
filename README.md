@@ -83,6 +83,8 @@ We have $q=17$ covariates in `X` for each space-time observation of `Y`, and so 
 
 We perform a bootstrap analysis using `bootstrap.R`, with the source functions provided in `bGEV_loss_functions.R`. The user must specify `boot.num`, which will determine the seed for the bootstrap sampling scheme. In the handbook chapter, we consider `boot.num` ranging from 1 to 200. For each bootstrap sample, we fit a bGEV regression model to the resampled data, and save the predictions, i.e., the parameter estimates, in `Predictions/`. The script `application_plots.R` then compiles these estimates into the plots provided in the handbook chapter.
 
+Note that fitting the deep bGEV model to each bootstrap sample can be computationally intensive, and will take 1-2 hours on a laptop using CPUs. Taking a smaller subsample from the dataset if recommended if you are not that patient!
+
 ```bash
 ├── bGEV_loss_functions.R          (Functions that comprise the bGEV loss function)
 ├── bootstrap.R                    (Estimates the deep bGEV model for a single bootstrap sample)

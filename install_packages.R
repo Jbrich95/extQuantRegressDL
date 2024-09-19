@@ -13,6 +13,7 @@ install.packages("evgam")
 
 # For plotting
 install.packages("ggplot")
+install.packages("ggmap")
 
 
 

@@ -1,7 +1,7 @@
 rm(list = ls())
 
 
-## Note that training of the bGEV deep regression model can be computationally intensive. 
+## Note that training of the bGEV deep regression model can be computationally intensive.
 ## Training of a single model on a laptop using CPUs will take roughly 1 to 2 hours.
 ## The predictions from 200 bootstrap samples are saved in `Predictions/`.
 reticulate::use_virtualenv("eQRDL", required = T)
@@ -130,7 +130,7 @@ n.epochs <- 250 # Train for 250 epochs. It is very unlikely that training will r
 mini.batch.size <- 512 # Mini-batch size of 512
 
 ## You may encounter NaN values during training, at which point training will stop.
-## These values are caused by numerical precision errors in evaluation of the loss function, 
+## These values are caused by numerical precision errors in evaluation of the loss function,
 ## particularly when the parameter estimates become very small.
 ## The model fit that is returned should still be reasonable.
 

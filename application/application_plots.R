@@ -1,36 +1,35 @@
-load("Data/monthly_max_data.Rdata")
-source("bGEV_loss_functions.R")
-
-n.boot <- 200
-
-
-load(paste0("application/Predictions/preds_job_29860036_boot9.Rdata"))
-
-all_preds <- array(dim = c(dim(preds), n.boot))
-
-for (it in 1:n.boot) {
-  boo <- try(load(paste0("application/Predictions/preds_job_29860036_boot", it, ".Rdata")))
-  if (class(boo) != "try-error") all_preds[, , , it] <- preds
-
-  print(it)
-}
-
-
-# Predicted parameters
-
-
-t_inds <- c(60, 45, 12, 38)
-
-S <- cbind(c(coords[, 1]), c(coords[, 2]))
+rm(list = ls())
 
 library(ggplot2)
 library(ggmap)
 
+# Read data and loss functions
+load("monthly_max_data.Rdata")
+source("bGEV_loss_functions.R")
+
+# Set number of bootstrap samples
+n.boot <- 200
+
+# Read in all predictions
+all_preds <- array(dim = c(c(dim(Y), 3), n.boot))
+for (it in 1:n.boot) {
+  load(paste0("Predictions/preds_boot", it, ".Rdata"))
+  all_preds[, , , it] <- preds
+}
+
+
+# We now plot maps of the median predicted parameters/return levels for a specific month.
+
+t.ind <- 38 # This will plot the maps for July 2013.
+print(times[t.ind])
+
+# Colour palette
+cols <- c("#fff7fb", "#ece7f2", "#d0d1e6", "#a6bddb", "#74a9cf", "#3690c0", "#0570b0", "#045a8d", "#023858")
+
+# Define the map
+S <- cbind(c(coords[, 1]), c(coords[, 2]))
 indbox <- make_bbox(lon = c(min(S[, 1]), max(S[, 1])), lat = c(max(S[, 2]), min(S[, 2])), f = 0)
-
 world <- map_data("world")
-
-
 ggp <- ggplot() +
   geom_map(
     data = world, map = world,
@@ -42,304 +41,212 @@ ggp <- ggplot() +
   coord_fixed(ratio = 1.4)
 
 
-for (t in t_inds) {
-  temp <- apply(all_preds[t, , 1, ], 1, median, na.rm = T)
-  cols <- c("#fff7fb", "#ece7f2", "#d0d1e6", "#a6bddb", "#74a9cf", "#3690c0", "#0570b0", "#045a8d", "#023858")
-  brks <- seq(floor(min((temp))), ceiling(max((temp))), length = 10)
-  brks <- ceiling(brks * 10) / 10
+# Plot the location parameter alpha(x)
 
+# Get bootstrap median
+loc.med <- apply(all_preds[t.ind, , 1, ], 1, median, na.rm = T)
 
-  data <- data.frame(lon = S[, 1], lat = S[, 2], value = temp)
-  p0 <- ggp + theme(
-    axis.line = element_blank(),
-    axis.text = element_blank(),
-    axis.ticks = element_blank(),
-    plot.margin = unit(c(0, 0, -1, -1), "lines")
-  ) + geom_tile(data, mapping = aes(x = lon, y = lat, fill = value), width = 0.27, height = 0.27) + xlab("") + ylab("")
-  # plot(p0)
-  p1 <- p0 + scale_fill_stepsn(breaks = brks, colors = cols, name = expression(alpha), limits = range(brks)) + theme(
+# Define the breaks in the colour key
+brks <- seq(floor(min((loc.med))), ceiling(max((loc.med))), length = 10)
+brks <- ceiling(brks * 10) / 10
+
+# Define data.frame
+df <- data.frame(lon = S[, 1], lat = S[, 2], value = loc.med)
+
+# ggplot
+p <- ggp + theme(
+  axis.line = element_blank(),
+  axis.text = element_blank(),
+  axis.ticks = element_blank(),
+  plot.margin = unit(c(0, 0, -1, -1), "lines")
+) + geom_tile(df, mapping = aes(x = lon, y = lat, fill = value), width = 0.27, height = 0.27) +
+  xlab("") + ylab("") +
+  scale_fill_stepsn(breaks = brks, colors = cols, name = expression(alpha), limits = range(brks)) +
+  theme(
     legend.key.size = unit(0.8, "in"),
     legend.text = element_text(size = 15),
     legend.title = element_text(size = 20),
     plot.background = element_rect(fill = "transparent", colour = NA),
     legend.background = element_rect(fill = "transparent", colour = NA),
-  )
-  # plot(p1)
+  ) + geom_path(data = world, aes(x = long, y = lat, group = group), colour = "black") +
+  theme(rect = element_rect(fill = "transparent"))
 
+p
 
-  p2 <- p1 + geom_path(data = world, aes(x = long, y = lat, group = group), colour = "black")
-  p2 <- p2 + theme(rect = element_rect(fill = "transparent"))
-  ggsave(p2,
-    filename = paste0("application/Figures/loc_t", t, "_median.pdf"),
-    height = 6, width = 6, bg = "transparent"
-  )
+# Save
+ggsave(p,
+  filename = paste0("Figures/location_median.pdf"),
+  height = 6, width = 6, bg = "transparent"
+)
 
+# Plot the scale parameter s(x)
 
-  temp <- apply(all_preds[t, , 2, ], 1, median, na.rm = T)
-  brks <- seq(floor(min((temp))), ceiling(max((temp))), length = 10)
-  brks <- ceiling(brks * 10) / 10
+# Get bootstrap median
+s.med <- apply(all_preds[t.ind, , 2, ], 1, median, na.rm = T)
 
+# Define the breaks in the colour key
+brks <- seq(floor(min((s.med))), ceiling(max((s.med))), length = 10)
+brks <- ceiling(brks * 10) / 10
 
-  data <- data.frame(lon = S[, 1], lat = S[, 2], value = temp)
-  p0 <- ggp + theme(
-    axis.line = element_blank(),
-    axis.text = element_blank(),
-    axis.ticks = element_blank(),
-    plot.margin = unit(c(0, 0, -1, -1), "lines")
-  ) + geom_tile(data, mapping = aes(x = lon, y = lat, fill = value), width = 0.27, height = 0.27) + xlab("") + ylab("")
-  # plot(p0)
-  p1 <- p0 + scale_fill_stepsn(breaks = brks, colors = cols, name = expression(s), limits = range(brks)) + theme(
+# Define data.frame
+
+df <- data.frame(lon = S[, 1], lat = S[, 2], value = s.med)
+
+# ggplot
+p <- ggp + theme(
+  axis.line = element_blank(),
+  axis.text = element_blank(),
+  axis.ticks = element_blank(),
+  plot.margin = unit(c(0, 0, -1, -1), "lines")
+) + geom_tile(df, mapping = aes(x = lon, y = lat, fill = value), width = 0.27, height = 0.27) +
+  xlab("") + ylab("") +
+  scale_fill_stepsn(breaks = brks, colors = cols, name = expression(s), limits = range(brks)) +
+  theme(
     legend.key.size = unit(0.8, "in"),
     legend.text = element_text(size = 15),
     legend.title = element_text(size = 20),
     plot.background = element_rect(fill = "transparent", colour = NA),
     legend.background = element_rect(fill = "transparent", colour = NA),
-  )
-  # plot(p1)
+  ) + geom_path(data = world, aes(x = long, y = lat, group = group), colour = "black") +
+  theme(rect = element_rect(fill = "transparent"))
 
+p
 
-  p2 <- p1 + geom_path(data = world, aes(x = long, y = lat, group = group), colour = "black")
-  p2 <- p2 + theme(rect = element_rect(fill = "transparent"))
-  ggsave(p2,
-    filename = paste0("application/Figures/s_t", t, "_median.pdf"),
-    height = 6, width = 6, bg = "transparent"
-  )
+# Save
+ggsave(p,
+  filename = paste0("Figures/scale_median.pdf"),
+  height = 6, width = 6, bg = "transparent"
+)
 
+# Plot the shape parameter xi(x)
 
-  temp <- apply(all_preds[t, , 3, ], 1, median, na.rm = T)
-  cols <- c("#fff7fb", "#ece7f2", "#d0d1e6", "#a6bddb", "#74a9cf", "#3690c0", "#0570b0", "#045a8d", "#023858")
-  brks <- seq(floor(min((temp))), max((temp)), length = 10)
-  brks <- ceiling(brks * 100) / 100
+# Get bootstrap median
+xi.med <- apply(all_preds[t.ind, , 3, ], 1, median, na.rm = T)
 
+# Define the breaks in the colour key
+brks <- seq(floor(min((xi.med))), max((xi.med)), length = 10)
+brks <- ceiling(brks * 100) / 100
 
-  data <- data.frame(lon = S[, 1], lat = S[, 2], value = temp)
-  p0 <- ggp + theme(
-    axis.line = element_blank(),
-    axis.text = element_blank(),
-    axis.ticks = element_blank(),
-    plot.margin = unit(c(0, 0, -1, -1), "lines")
-  ) + geom_tile(data, mapping = aes(x = lon, y = lat, fill = value), width = 0.27, height = 0.27) + xlab("") + ylab("")
-  # plot(p0)
-  p1 <- p0 + scale_fill_stepsn(breaks = brks, colors = cols, name = expression(xi), limits = range(brks)) + theme(
+# data frame
+df <- data.frame(lon = S[, 1], lat = S[, 2], value = xi.med)
+
+# ggplot
+p <- ggp + theme(
+  axis.line = element_blank(),
+  axis.text = element_blank(),
+  axis.ticks = element_blank(),
+  plot.margin = unit(c(0, 0, -1, -1), "lines")
+) + geom_tile(df, mapping = aes(x = lon, y = lat, fill = value), width = 0.27, height = 0.27) +
+  xlab("") + ylab("") +
+  scale_fill_stepsn(breaks = brks, colors = cols, name = expression(xi), limits = range(brks)) +
+  theme(
     legend.key.size = unit(0.8, "in"),
     legend.text = element_text(size = 15),
     legend.title = element_text(size = 20),
     plot.background = element_rect(fill = "transparent", colour = NA),
     legend.background = element_rect(fill = "transparent", colour = NA),
-  )
-  # plot(p1)
+  ) + geom_path(data = world, aes(x = long, y = lat, group = group), colour = "black") +
+  theme(rect = element_rect(fill = "transparent"))
+
+p
+
+ggsave(p,
+  filename = paste0("Figures/xi_median.pdf"),
+  height = 6, width = 6, bg = "transparent"
+)
 
 
-  p2 <- p1 + geom_path(data = world, aes(x = long, y = lat, group = group), colour = "black")
-  p2 <- p2 + theme(rect = element_rect(fill = "transparent"))
-  ggsave(p2,
-    filename = paste0("application/Figures/xi_t", t, "_median.pdf"),
-    height = 6, width = 6, bg = "transparent"
-  )
 
+# Plot the observation
 
-  temp <- Y[t, ]
-  cols <- c("#fff7fb", "#ece7f2", "#d0d1e6", "#a6bddb", "#74a9cf", "#3690c0", "#0570b0", "#045a8d", "#023858")
-  brks <- seq(floor(min((temp))), ceiling(max((temp))), length = 10)
-  brks <- ceiling(brks * 10) / 10
+# Define the breaks in the colour key
 
+brks <- seq(floor(min((Y[t.ind, ]))), ceiling(max((Y[t.ind, ]))), length = 10)
+brks <- ceiling(brks * 10) / 10
 
-  data <- data.frame(lon = S[, 1], lat = S[, 2], value = temp)
-  p0 <- ggp + theme(
-    axis.line = element_blank(),
-    axis.text = element_blank(),
-    axis.ticks = element_blank(),
-    plot.margin = unit(c(0, 0, -1, -1), "lines")
-  ) + geom_tile(data, mapping = aes(x = lon, y = lat, fill = value), width = 0.27, height = 0.27) + xlab("") + ylab("")
-  # plot(p0)
-  p1 <- p0 + scale_fill_stepsn(breaks = brks, colors = cols, name = expression(Y), limits = range(brks)) + theme(
+df <- data.frame(lon = S[, 1], lat = S[, 2], value = Y[t.ind, ])
+p <- ggp + theme(
+  axis.line = element_blank(),
+  axis.text = element_blank(),
+  axis.ticks = element_blank(),
+  plot.margin = unit(c(0, 0, -1, -1), "lines")
+) + geom_tile(df, mapping = aes(x = lon, y = lat, fill = value), width = 0.27, height = 0.27) +
+  xlab("") + ylab("") +
+  scale_fill_stepsn(breaks = brks, colors = cols, name = expression(Y), limits = range(brks)) +
+  theme(
     legend.key.size = unit(0.8, "in"),
     legend.text = element_text(size = 15),
     legend.title = element_text(size = 20),
     plot.background = element_rect(fill = "transparent", colour = NA),
     legend.background = element_rect(fill = "transparent", colour = NA),
-  )
-  # plot(p1)
+  ) + geom_path(data = world, aes(x = long, y = lat, group = group), colour = "black") +
+  theme(rect = element_rect(fill = "transparent"))
+
+p
+ggsave(p,
+  filename = paste0("Figures/ob.pdf"),
+  height = 6, width = 6, bg = "transparent"
+)
 
 
-  p2 <- p1 + geom_path(data = world, aes(x = long, y = lat, group = group), colour = "black")
-  p2 <- p2 + theme(rect = element_rect(fill = "transparent"))
-  ggsave(p2,
-    filename = paste0("application/Figures/obs_t", t, "_median.pdf"),
-    height = 6, width = 6, bg = "transparent"
-  )
-  print(times[t])
+# We now plot the tau  = 0.9 and tau = 0.9999 quantiles
+taus <- c(0.9, 0.9999)
 
-
-
-  temp <- apply(all_preds[t, , , ], c(1, 3), function(x) {
-    qbGEV(0.9,
+for (tau in taus) {
+  # evaluate quantile function for bGEV
+  q <- apply(all_preds[t.ind, , , ], c(1, 3), function(x) {
+    qbGEV(tau,
       q_a = x[1], s_b = x[2], xi = x[3],
       alpha = 0.5, beta = 0.5, p_a = 0.05, p_b = 0.2, c1 = 5, c2 = 5
     )
   })
+  # Get bootstrap median
+  q.med <- apply(q, 1, median, na.rm = T)
 
+  # Define the breaks in the colour key
 
-  temp <- apply(temp, 1, median, na.rm = T)
-  cols <- c("#fff7fb", "#ece7f2", "#d0d1e6", "#a6bddb", "#74a9cf", "#3690c0", "#0570b0", "#045a8d", "#023858")
-  brks <- seq(floor(min((temp))), max((temp)), length = 10)
+  brks <- seq(floor(min((q.med))), max((q.med)), length = 10)
   brks <- ceiling(brks * 10) / 10
 
 
-  data <- data.frame(lon = S[, 1], lat = S[, 2], value = temp)
-  p0 <- ggp + theme(
+  df <- data.frame(lon = S[, 1], lat = S[, 2], value = q.med)
+
+  p <- ggp + theme(
     axis.line = element_blank(),
     axis.text = element_blank(),
     axis.ticks = element_blank(),
     plot.margin = unit(c(0, 0, -1, -1), "lines")
-  ) + geom_tile(data, mapping = aes(x = lon, y = lat, fill = value), width = 0.27, height = 0.27) + xlab("") + ylab("")
-  # plot(p0)
-  p1 <- p0 + scale_fill_stepsn(breaks = brks, colors = cols, name = expression(Q[x](tau)), limits = range(brks)) + theme(
-    legend.key.size = unit(0.8, "in"),
-    legend.text = element_text(size = 15),
-    legend.title = element_text(size = 20),
-    plot.background = element_rect(fill = "transparent", colour = NA),
-    legend.background = element_rect(fill = "transparent", colour = NA),
-  )
-  # plot(p1)
+  ) + geom_tile(df, mapping = aes(x = lon, y = lat, fill = value), width = 0.27, height = 0.27) +
+    xlab("") + ylab("") +
+    scale_fill_stepsn(breaks = brks, colors = cols, 
+                      name = expression(Q[x](tau)), limits = range(brks)) +
+    theme(
+      legend.key.size = unit(0.8, "in"),
+      legend.text = element_text(size = 15),
+      legend.title = element_text(size = 20),
+      plot.background = element_rect(fill = "transparent", colour = NA),
+      legend.background = element_rect(fill = "transparent", colour = NA),
+    ) + geom_path(data = world, aes(x = long, y = lat, group = group), colour = "black") +
+    theme(rect = element_rect(fill = "transparent"))
 
+  p
 
-  p2 <- p1 + geom_path(data = world, aes(x = long, y = lat, group = group), colour = "black")
-  p2 <- p2 + theme(rect = element_rect(fill = "transparent"))
-  ggsave(p2,
-    filename = paste0("application/Figures/q_0.9_t", t, "_median.pdf"),
-    height = 6, width = 6, bg = "transparent"
-  )
-
-  temp <- apply(all_preds[t, , , ], c(1, 3), function(x) {
-    qbGEV(0.99,
-      q_a = x[1], s_b = x[2], xi = x[3],
-      alpha = 0.5, beta = 0.5, p_a = 0.05, p_b = 0.2, c1 = 5, c2 = 5
-    )
-  })
-
-
-  temp <- apply(temp, 1, median, na.rm = T)
-  cols <- c("#fff7fb", "#ece7f2", "#d0d1e6", "#a6bddb", "#74a9cf", "#3690c0", "#0570b0", "#045a8d", "#023858")
-  brks <- seq(floor(min((temp))), max((temp)), length = 10)
-  brks <- ceiling(brks * 10) / 10
-
-
-  data <- data.frame(lon = S[, 1], lat = S[, 2], value = temp)
-  p0 <- ggp + theme(
-    axis.line = element_blank(),
-    axis.text = element_blank(),
-    axis.ticks = element_blank(),
-    plot.margin = unit(c(0, 0, -1, -1), "lines")
-  ) + geom_tile(data, mapping = aes(x = lon, y = lat, fill = value), width = 0.27, height = 0.27) + xlab("") + ylab("")
-  # plot(p0)
-  p1 <- p0 + scale_fill_stepsn(breaks = brks, colors = cols, name = expression(Q[x](tau)), limits = range(brks)) + theme(
-    legend.key.size = unit(0.8, "in"),
-    legend.text = element_text(size = 15),
-    legend.title = element_text(size = 20),
-    plot.background = element_rect(fill = "transparent", colour = NA),
-    legend.background = element_rect(fill = "transparent", colour = NA),
-  )
-  # plot(p1)
-
-
-  p2 <- p1 + geom_path(data = world, aes(x = long, y = lat, group = group), colour = "black")
-  p2 <- p2 + theme(rect = element_rect(fill = "transparent"))
-  ggsave(p2,
-    filename = paste0("application/Figures/q_0.99_t", t, "_median.pdf"),
-    height = 6, width = 6, bg = "transparent"
-  )
-
-  temp <- apply(all_preds[t, , , ], c(1, 3), function(x) {
-    qbGEV(0.999,
-      q_a = x[1], s_b = x[2], xi = x[3],
-      alpha = 0.5, beta = 0.5, p_a = 0.05, p_b = 0.2, c1 = 5, c2 = 5
-    )
-  })
-
-
-  temp <- apply(temp, 1, median, na.rm = T)
-  cols <- c("#fff7fb", "#ece7f2", "#d0d1e6", "#a6bddb", "#74a9cf", "#3690c0", "#0570b0", "#045a8d", "#023858")
-  brks <- seq(floor(min((temp))), max((temp)), length = 10)
-  brks <- ceiling(brks * 10) / 10
-
-
-  data <- data.frame(lon = S[, 1], lat = S[, 2], value = temp)
-  p0 <- ggp + theme(
-    axis.line = element_blank(),
-    axis.text = element_blank(),
-    axis.ticks = element_blank(),
-    plot.margin = unit(c(0, 0, -1, -1), "lines")
-  ) + geom_tile(data, mapping = aes(x = lon, y = lat, fill = value), width = 0.27, height = 0.27) + xlab("") + ylab("")
-  # plot(p0)
-  p1 <- p0 + scale_fill_stepsn(breaks = brks, colors = cols, name = expression(Q[x](tau)), limits = range(brks)) + theme(
-    legend.key.size = unit(0.8, "in"),
-    legend.text = element_text(size = 15),
-    legend.title = element_text(size = 20),
-    plot.background = element_rect(fill = "transparent", colour = NA),
-    legend.background = element_rect(fill = "transparent", colour = NA),
-  )
-  # plot(p1)
-
-
-  p2 <- p1 + geom_path(data = world, aes(x = long, y = lat, group = group), colour = "black")
-  p2 <- p2 + theme(rect = element_rect(fill = "transparent"))
-  ggsave(p2,
-    filename = paste0("application/Figures/q_0.999_t", t, "_median.pdf"),
-    height = 6, width = 6, bg = "transparent"
-  )
-
-  temp <- apply(all_preds[t, , , ], c(1, 3), function(x) {
-    qbGEV(0.9999,
-      q_a = x[1], s_b = x[2], xi = x[3],
-      alpha = 0.5, beta = 0.5, p_a = 0.05, p_b = 0.2, c1 = 5, c2 = 5
-    )
-  })
-
-
-  temp <- apply(temp, 1, median, na.rm = T)
-  cols <- c("#fff7fb", "#ece7f2", "#d0d1e6", "#a6bddb", "#74a9cf", "#3690c0", "#0570b0", "#045a8d", "#023858")
-  brks <- seq(floor(min((temp))), max((temp)), length = 10)
-  brks <- ceiling(brks * 10) / 10
-
-
-  data <- data.frame(lon = S[, 1], lat = S[, 2], value = temp)
-  p0 <- ggp + theme(
-    axis.line = element_blank(),
-    axis.text = element_blank(),
-    axis.ticks = element_blank(),
-    plot.margin = unit(c(0, 0, -1, -1), "lines")
-  ) + geom_tile(data, mapping = aes(x = lon, y = lat, fill = value), width = 0.27, height = 0.27) + xlab("") + ylab("")
-  # plot(p0)
-  p1 <- p0 + scale_fill_stepsn(breaks = brks, colors = cols, name = expression(Q[x](tau)), limits = range(brks)) + theme(
-    legend.key.size = unit(0.8, "in"),
-    legend.text = element_text(size = 15),
-    legend.title = element_text(size = 20),
-    plot.background = element_rect(fill = "transparent", colour = NA),
-    legend.background = element_rect(fill = "transparent", colour = NA),
-  )
-  # plot(p1)
-
-
-  p2 <- p1 + geom_path(data = world, aes(x = long, y = lat, group = group), colour = "black")
-  p2 <- p2 + theme(rect = element_rect(fill = "transparent"))
-  ggsave(p2,
-    filename = paste0("application/Figures/q_0.9999_t", t, "_median.pdf"),
+  ggsave(p,
+    filename = paste0("Figures/q_", tau, "_median.pdf"),
     height = 6, width = 6, bg = "transparent"
   )
 }
 
+# We now plot the pooled QQ diagnostic in Figure 1.5.
 
 
+# First, transform the data to unit exponential margins for each bootstrap sample.
 
-
-
-
-# Transform to exp margins
-
+# This will take some time!
 
 dat <- c(Y)
 all_exp <- array(dim = c(length(dat), n.boot))
+
 for (it in 1:n.boot) {
   pred_tall <- matrix(ncol = 3, nrow = length(dat))
   for (i in 1:3) pred_tall[, i] <- c(all_preds[, , i, it])
@@ -354,37 +261,32 @@ for (it in 1:n.boot) {
   }
   print(it)
 }
-
 all_exp <- qexp(all_exp)
 
-p_min <- 0
-n_p <- 25000
+
+n_p <- 25000 # Number of quantiles to consider
+
+
 ps <- seq(0, length(dat) / (length(dat) + 1), length = n_p)
+
+# Evaluate quantiles for each bootstrap sample
 qs <- array(dim = c(n.boot, length(ps)))
 for (i in 1:n.boot) {
   qs[i, ] <- quantile(all_exp[, i], ps, na.rm = T)
 }
-qs_med <- apply(qs, 2, median, na.rm = T)
 
+# Get pointwise medians, 0.025 and 0.975 quantiles
+qs_med <- apply(qs, 2, median, na.rm = T)
 qupper <- apply(qs, 2, quantile, prob = 0.975, na.rm = T)
 qlower <- apply(qs, 2, quantile, prob = 0.025, na.rm = T)
-pdf(file = paste0("application/Figures/bGEV_exp.pdf"), width = 7, height = 7)
-plot(qexp(ps), qs_med,
-  xlab = "Theoretical", ylab = "Model", main = "", pch = 20,
-  ylim = range(0, qupper), xlim = range(0, qupper)
-)
-abline(a = 0, b = 1, col = "red")
-points(qexp(ps), qupper, type = "l", lty = 2, col = "blue", lwd = 2)
-points(qexp(ps), qlower, type = "l", lty = 2, col = "blue", lwd = 2)
 
-dev.off()
-
-qq_95 <- data.frame(t_exp = qexp(ps), ylow = qlower, yup = qupper, ymedian = qs_med)
-lim0 <- range(qq_95$yup)
+# make data frame for ggplot
+df <- data.frame(t_exp = qexp(ps), ylow = qlower, yup = qupper, ymedian = qs_med)
+lim0 <- range(df$yup)
 
 # Save the gplot
 
-p <- ggplot(qq_95) +
+p <- ggplot(df) +
   geom_point(aes(x = t_exp, y = ymedian), size = 1.2) +
   xlim(0, 15.2) +
   ylim(0, 15.2) +
@@ -392,5 +294,9 @@ p <- ggplot(qq_95) +
   geom_line(aes(x = t_exp, y = yup), linetype = 5, col = "blue") +
   labs(x = "Theoretical", y = "Model") +
   geom_abline(intercept = 0, slope = 1, col = "red") +
-  theme(text = element_text(size = 26), axis.text.x = element_text(size = 26), axis.text.y = element_text(size = 26))
-ggsave(p, file = paste0("application/Figures/bGEV_exp.pdf"), width = 8, height = 8)
+  theme(
+    text = element_text(size = 26), axis.text.x = element_text(size = 26),
+    axis.text.y = element_text(size = 26)
+  )
+p
+ggsave(p, file = paste0("Figures/bGEV_pooledQQ.pdf"), width = 8, height = 8)
