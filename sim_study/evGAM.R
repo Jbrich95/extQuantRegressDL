@@ -64,7 +64,7 @@ for (n in ns) {
 
   # Get test data
   set.seed(no.experiment + 1)
-  test.sim <- sim(n)
+  test.sim <- sim(50000)
 
   Y.test <- test.sim$Y
   X.test <- test.sim$X

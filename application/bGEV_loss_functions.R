@@ -118,8 +118,8 @@ bGEV_loss <- function(alpha = 0.5, beta = 0.5, p_a = 0.05, p_b = 0.2, c1 = 5, c2
 
     l2 <- K$log(l2)
 
-    return(-1000 * K$sum(l1)
-      - 1000 * K$sum(l2))
+    return(-  K$sum(l1)
+      -  K$sum(l2))
   }
   return(loss)
 }

@@ -67,6 +67,19 @@ for (n in ns) {
   # Create MSE vector. We build a model for each value of tau
   MSE <- rep(0, length(tau))
 
+
+  # Get test data
+  set.seed(no.experiment + 1)
+  test.sim <- sim(50000)
+
+  Y.test <- test.sim$Y
+  X.test <- test.sim$X
+  if (type == 1) test.sigma <- test.sim$sigma
+  test.xi <- test.sim$xi
+  if (type == 2) test.meanlog <- test.sim$meanlog
+  test.sdlog <- test.sim$sdlog
+
+
   for (j in 1:length(MSE)) {
     # Build MLP model
     input_nn <- layer_input(shape = dim(X)[2], name = "nn_input") # Define input layer
@@ -98,7 +111,7 @@ for (n in ns) {
     tilted_loss <- function(y_true, y_pred) {
       K <- backend()
       error <- y_true - y_pred
-      return(K$mean(K$maximum(quant.level * error, (quant.level - 1) * error)))
+      return(K$sum(K$maximum(quant.level * error, (quant.level - 1) * error)))
     }
 
     # Compile Keras model with adam optimiser and tilted loss
@@ -122,18 +135,6 @@ for (n in ns) {
       verbose = 2
     )
 
-
-
-    # Get test data
-    set.seed(no.experiment + 1)
-    test.sim <- sim(n)
-
-    Y.test <- test.sim$Y
-    X.test <- test.sim$X
-    if (type == 1) test.sigma <- test.sim$sigma
-    test.xi <- test.sim$xi
-    if (type == 2) test.meanlog <- test.sim$meanlog
-    test.sdlog <- test.sim$sdlog
 
     # Get out-of-sample test quantile estimates
     pred.quant <- model %>% predict(list(X.test))
