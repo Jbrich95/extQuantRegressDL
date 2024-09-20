@@ -3,6 +3,7 @@ rm(list = ls())
 library(ggplot2)
 library(ggmap)
 
+
 # Read data and loss functions
 load("monthly_max_data.Rdata")
 source("bGEV_loss_functions.R")
@@ -10,13 +11,21 @@ source("bGEV_loss_functions.R")
 # Set number of bootstrap samples
 n.boot <- 200
 
+#Setting n.boot <- 0 will plot the results for the original data only.
+
 # Read in all predictions
+if(n.boot > 0){
 all_preds <- array(dim = c(c(dim(Y), 3), n.boot))
 for (it in 1:n.boot) {
   load(paste0("Predictions/preds_boot", it, ".Rdata"))
   all_preds[, , , it] <- preds
 }
-
+}else if (n.boot==0){
+  all_preds <- array(dim = c(c(dim(Y), 3), 1))
+  load(paste0("Predictions/preds_boot", 0, ".Rdata"))
+  all_preds[, , , 1] <- preds
+  
+}
 
 # We now plot maps of the median predicted parameters/return levels for a specific month.
 
@@ -44,7 +53,7 @@ ggp <- ggplot() +
 # Plot the location parameter alpha(x)
 
 # Get bootstrap median
-loc.med <- apply(all_preds[t.ind, , 1, ], 1, median, na.rm = T)
+if(n.boot >0) loc.med <- apply(all_preds[t.ind, , 1, ], 1, median, na.rm = T) else loc.med <- all_preds[t.ind, , 1, ]
 
 # Define the breaks in the colour key
 brks <- seq(floor(min((loc.med))), ceiling(max((loc.med))), length = 10)
@@ -74,15 +83,21 @@ p <- ggp + theme(
 p
 
 # Save
+if(n.boot >0){
 ggsave(p,
   filename = paste0("Figures/location_median.pdf"),
   height = 6, width = 6, bg = "transparent"
 )
-
+}else{
+  ggsave(p,
+         filename = paste0("Figures/location_original.pdf"),
+         height = 6, width = 6, bg = "transparent"
+  )
+}
 # Plot the scale parameter s(x)
 
 # Get bootstrap median
-s.med <- apply(all_preds[t.ind, , 2, ], 1, median, na.rm = T)
+if(n.boot > 0) s.med <- apply(all_preds[t.ind, , 2, ], 1, median, na.rm = T) else s.med <- all_preds[t.ind, , 2, ]
 
 # Define the breaks in the colour key
 brks <- seq(floor(min((s.med))), ceiling(max((s.med))), length = 10)
@@ -113,15 +128,23 @@ p <- ggp + theme(
 p
 
 # Save
+if(n.boot > 0){
 ggsave(p,
   filename = paste0("Figures/scale_median.pdf"),
   height = 6, width = 6, bg = "transparent"
 )
+}else{
+  ggsave(p,
+         filename = paste0("Figures/scale_original.pdf"),
+         height = 6, width = 6, bg = "transparent"
+  )
+  
+}
 
 # Plot the shape parameter xi(x)
 
 # Get bootstrap median
-xi.med <- apply(all_preds[t.ind, , 3, ], 1, median, na.rm = T)
+if(n.boot >0) xi.med <- apply(all_preds[t.ind, , 3, ], 1, median, na.rm = T) else xi.med <- all_preds[t.ind,,3,]
 
 # Define the breaks in the colour key
 brks <- seq(floor(min((xi.med))), max((xi.med)), length = 10)
@@ -150,11 +173,17 @@ p <- ggp + theme(
 
 p
 
+if(n.boot > 0){
 ggsave(p,
   filename = paste0("Figures/xi_median.pdf"),
   height = 6, width = 6, bg = "transparent"
 )
-
+}else{
+  ggsave(p,
+         filename = paste0("Figures/xi_original.pdf"),
+         height = 6, width = 6, bg = "transparent"
+  ) 
+}
 
 
 # Plot the observation
@@ -194,14 +223,24 @@ taus <- c(0.9, 0.9999)
 
 for (tau in taus) {
   # evaluate quantile function for bGEV
+  if(n.boot > 0){
   q <- apply(all_preds[t.ind, , , ], c(1, 3), function(x) {
     qbGEV(tau,
       q_a = x[1], s_b = x[2], xi = x[3],
       alpha = 0.5, beta = 0.5, p_a = 0.05, p_b = 0.2, c1 = 5, c2 = 5
     )
   })
+  }else{
+    q <- apply(all_preds[t.ind, , , ], c(1), function(x) {
+      qbGEV(tau,
+            q_a = x[1], s_b = x[2], xi = x[3],
+            alpha = 0.5, beta = 0.5, p_a = 0.05, p_b = 0.2, c1 = 5, c2 = 5
+      )
+    })
+  }
   # Get bootstrap median
-  q.med <- apply(q, 1, median, na.rm = T)
+ 
+  if(n.boot>0)  q.med <- apply(q, 1, median, na.rm = T) else q.med <- q
 
   # Define the breaks in the colour key
 
@@ -230,12 +269,21 @@ for (tau in taus) {
     theme(rect = element_rect(fill = "transparent"))
 
   p
-
+if(n.boot>0){
   ggsave(p,
     filename = paste0("Figures/q_", tau, "_median.pdf"),
     height = 6, width = 6, bg = "transparent"
   )
+}else{
+  ggsave(p,
+         filename = paste0("Figures/q_", tau, "_original.pdf"),
+         height = 6, width = 6, bg = "transparent"
+  )
 }
+}
+
+
+
 
 # We now plot the pooled QQ diagnostic in Figure 1.5.
 

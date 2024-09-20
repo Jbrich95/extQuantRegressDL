@@ -14,7 +14,7 @@ source("bGEV_loss_functions.R")
 
 boot.num <- 1
 
-
+# If boot.num <- 0, no bootstrap resampling is done
 
 # Define the architecture for the MLP.
 # L = 5 layers, each of width 10
@@ -37,6 +37,7 @@ for (i in 1:dim(X)[3]) {
 set.seed(boot.num)
 N <- dim(Y)[1]
 all_inds <- sample(1:N, N, replace = T)
+if(boot.num ==0) all_inds = 1:N
 Y.boot <- Y[all_inds, ]
 X.boot <- X[all_inds, , ]
 
